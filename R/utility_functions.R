@@ -1,0 +1,299 @@
+#' data.frame to list of data matrices
+#'
+#' @description
+#' This function converts the data.frame to a list of data matrices and finds
+#' the dimensions of the multilevel panel.
+#'
+#' @param panel The user-supplied data frame for the multilevel panel data. See \strong{Details}.
+#' @param depvar_header A character string specifying the header of the dependent variable. See \strong{Details}.
+#' @param i_header A character string specifying the header of the block identifier. See \strong{Details}.
+#' @param j_header A character string specifying the header of the individual identifier. See \strong{Details}.
+#' @param t_header A character string specifying the header of the time identifier. See \strong{Details}.
+#'
+#' @details
+#' See the details of GCC().
+#'
+#'
+#' @return A list containing the data matrices of the \eqn{R} blocks. Each of them
+#' has dimension \eqn{T\times N_{i}}.
+#' @export
+#'
+#' @examples
+#'
+#' panel <- UKhouse # load the data
+#'
+#' # panel$Region identifies different blocks i=1,...,R.
+#' # panel$LPA_Type identifies different individuals j=1,...,N_i.
+#'
+#' Y_list<- panel2list(panel, depvar_header = "dlPrice", i_header = "Region",
+#'                                        j_header = "LPA_Type", t_header = "Date")
+#'
+panel2list <- function(panel, depvar_header = NULL, i_header = NULL,
+                       j_header = NULL, t_header = NULL) {
+  i_names <- unique(panel[, i_header])
+  R <- length(i_names)
+  List <- lapply(c(1:R), function(i) {
+    select <- panel[, i_header] == i_names[i]
+    subpanel <- panel[select ,c(depvar_header, j_header, t_header)]
+    subpanel_wide <- stats::reshape(subpanel, idvar = t_header, timevar = j_header, direction = "wide")
+    subpanel_mat <- data.matrix(subpanel_wide)
+    subpanel_mat[, 2:ncol(subpanel_mat)]
+  })
+  names(List) <- i_names
+  return(List)
+}
+
+#' Check validity of the data and headers
+#'
+#' @description
+#' This is an internal function which checks the validity of the data and
+#' provide a list of matrices of length \eqn{R} for estimation.
+#'
+#' @param data Either a data.frame or a list of data matrices of length \eqn{R}. See \strong{Details}.
+#' @param depvar_header A character string specifying the header of the dependent variable. See \strong{Details}.
+#' @param i_header A character string specifying the header of the block identifier. See \strong{Details}.
+#' @param j_header A character string specifying the header of the individual identifier. See \strong{Details}.
+#' @param t_header A character string specifying the header of the time identifier. See \strong{Details}.
+#'
+#' @details
+#' See \strong{Details} of GCC().
+#'
+#'
+#' @return A list of data matrices of length \eqn{R}.
+#' @export
+#'
+#' @examples
+#' panel <- UKhouse # load the data
+#' Y_list <- check_data(panel,
+#'   depvar_header = "dlPrice", i_header = "Region",
+#'   j_header = "LPA_Type", t_header = "Date"
+#' )
+check_data <- function(data, depvar_header = NULL, i_header = NULL,
+                       j_header = NULL, t_header = NULL) {
+  headers <- as.character(c(depvar_header, i_header, j_header, t_header))
+  if (is.data.frame(data)) {
+    if (length(headers) != 4) {
+      stop("The header names are not correctly specified.")
+    }
+    Y_list <- panel2list(data, depvar_header, i_header,
+                          j_header, t_header)
+  } else if (is.list(data)) {
+    if (length(headers) != 0) {
+      message("A list of data is supplied. The header names are not used.")
+    }
+    Y_list <- data
+  }
+  nrows <- sapply(Y_list, nrow)
+  if (!length(unique(nrows)) == 1) {
+    stop("The panel data is not balanced.")
+  }
+  if (any(sapply(Y_list, function(x) {
+    any(is.na(x))
+  }))) {
+    stop("Data contains NAs.")
+  }
+  return(Y_list)
+}
+
+#' Print the relative importance ratios
+#'
+#' @param object An S3 object of class 'multi_result' created by multilevel().
+#' @param ... Additional arguments.
+#'
+#' @return A matrix containing the summary of the model.
+#' @export
+#'
+#' @examples
+#'
+#' panel <- UKhouse # load the data
+#' est_multi <- multilevel(panel, ic = "BIC3", standarise = TRUE, r_max = 5,
+#'                            depvar_header = "dlPrice", i_header = "Region",
+#'                            j_header = "LPA_Type", t_header = "Date")
+#' summary(est_multi)
+#'
+summary.multi_result <- function(object, ...) {
+
+  G <- object$G
+  F <- object$F
+  Gamma <- object$Gamma
+  Lambda <- object$Lambda
+  R <- object$R
+  N <- object$N
+  Ni <- object$Ni
+  T <- object$T
+  r0 <- object$r0
+  ri <- object$ri
+  Y_list <- object$Y_list
+  ic <- object$ic
+  block_names <- object$block_names
+  relative <- matrix(0, 3, R + 1)
+
+  for (i in 1:(R + 1)) {
+    if (i < (R + 1)) {
+      resid <- rep(1, Ni[i])
+
+      if (r0 == 0) {
+        relative[1, i] <- 0
+      } else {
+        relative[1, i] <- mean(diag(stats::cov(G %*% t(Gamma[[i]])) / (stats::cov(Y_list[[i]]))))
+        resid <- resid - diag(stats::cov(G %*% t(Gamma[[i]])) / (stats::cov(Y_list[[i]])))
+      }
+
+      if (ri[i] == 0) {
+        relative[2, i] <- 0
+      } else {
+        relative[2, i] <- mean(diag(stats::cov(F[[i]] %*% t(Lambda[[i]])) / (stats::cov(Y_list[[i]]))))
+        resid <- resid - diag(stats::cov(F[[i]] %*% t(Lambda[[i]])) / (stats::cov(Y_list[[i]])))
+      }
+
+      relative[3, i] <- mean(resid)
+    } else {
+      relative[, i] <- rowMeans(relative[, 1:R])
+    }
+  }
+  relative<-round(relative, 4)
+  sample_size <- c(Ni, N)
+  num_local <- c(ri, NA)
+  results <- t(rbind(sample_size, num_local, relative))
+  rownames(results) <- stringr::str_trunc(c(block_names, "Average/Sum"), 20)
+  colnames(results) <- c("Ni", "ri", "RI global", "RI local", "RI error")
+
+  cat(
+    "===========================================================",
+    "\n"
+  )
+  cat("\n")
+  cat(
+    "                  Estimation  results                      ",
+    "\n"
+  )
+  cat("\n")
+  cat(
+    "===========================================================",
+    "\n"
+  )
+  cat("R = ", R, ", N = ", N, ", T = ", T, " \n")
+  cat(r0," global factor(s) detected. r0 = ", r0, " \n")
+  cat("local factors are estimated using ", ic, " \n")
+  cat("RI = relative importance ratio", "\n")
+  print(results)
+  cat(
+    "===========================================================",
+    "\n"
+  )
+  return(invisible(results))
+}
+
+
+#' Bartlett kernel function
+#'
+#' @description
+#' Evaluate the Bartlett kernel function: \eqn{Bartlett(x)=1-|x|} if
+#' \eqn{|x|\leq 1} and \eqn{Bartlett(x)=1-|x|} otherwise.
+#'
+#'
+#' @param x A single numeric.
+#'
+#' @return A single numeric between 0 and 1.
+#' @export
+#'
+#' @examples
+#'
+#' Bartlett(0.5)
+#'
+Bartlett <- function(x) {
+  if (abs(x) <= 1) {
+    value <- 1 - abs(x)
+  } else {
+    value <- 0
+  }
+  return(value)
+}
+
+#' Dependent wild bootstrap for resampling time series
+#'
+#' @description
+#' Select an optimal bandwidth parameter and apply the dependent wild bootstrap
+#' with Bartlett kernel to obtain the resampled time series.
+#'
+#' @param y A \eqn{T\times 1} vector of time series to be resampled.
+#'
+#' @return A \eqn{T\times 1} matrix of resampled time series.
+#'
+#' @references Shao, X., 2010. The dependent wild bootstrap. Journal of the
+#' American Statistical Association, 105(489), pp.218-235.
+#'
+#' @export
+#'
+#' @examples
+#' panel <- UKhouse # load the data
+#' est_multi <- multilevel(panel, ic = "BIC3", standarise = TRUE, r_max = 5,
+#'                            depvar_header = "dlPrice", i_header = "Region",
+#'                            j_header = "LPA_Type", t_header = "Date")
+#' G_star <- dwBS(est_multi$G)
+dwBS <- function(y) {
+  T <- nrow(y)
+  y_star <- matrix(0, T, 1)
+  lT <- get_bw(y)
+
+  ss <- seq(1, T)
+  Omega_col <- sapply(ss, function(x) {
+    Bartlett((x - 1) / lT)
+  })
+  Omega_col <- Omega_col[Omega_col > 0]
+  extra <- (length(Omega_col) - 1) * 2
+  if (extra > 0) {
+    Omega_col <- c(Omega_col[length(Omega_col):2], Omega_col)
+    Omega <- matrix(0, T + extra, T + extra)
+    for (tt in 1:T) {
+      start <- tt
+      end <- tt + extra
+      Omega[start:end, tt] <- Omega_col
+    }
+    Omega <- Omega[(extra / 2 + 1):(extra / 2 + T), 1:T]
+  } else {
+    Omega <- diag(1, T, T)
+  }
+
+  eig <- eigen(Omega)
+  Omega_half <- eig$vectors %*% diag(sqrt(eig$values)) %*% t(eig$vectors)
+  y_star <- Omega_half %*% matrix(stats::rnorm(T, 0, 1), ncol = 1) * y
+
+}
+
+#' Get an optimal bandwidth using Bartlett kernel
+#'
+#' @description
+#' Automatic bandwidth selection of Andrews (1991) using Bartlett kernel.
+#'
+#' @param y A \eqn{T\times 1} vector of time series
+#'
+#' @return A numeric.
+#'
+#' @references Andrews, D.W., 1991. Heteroskedasticity and autocorrelation
+#' consistent covariance matrix estimation. Econometrica: Journal of the
+#' Econometric Society, pp.817-858.
+#'
+#' @export
+#'
+#' @examples
+#' panel <- UKhouse # load the data
+#' est_multi <- multilevel(panel, ic = "BIC3", standarise = TRUE, r_max = 5,
+#'                            depvar_header = "dlPrice", i_header = "Region",
+#'                            j_header = "LPA_Type", t_header = "Date")
+#' lT_G <- get_bw(est_multi$G)
+get_bw <- function(y) {
+  T <- nrow(y)
+  rho <- sigma2 <- 1
+  mod <- stats::lm(y[-1, 1] ~ y[-T, 1] - 1)
+  rho <- mod$coeff
+  sigma2 <- (1 / T) * sum(mod$resid^2)
+  denom <- sum(sigma2^2 / (1 - rho)^4)
+  numer <- sum(4 * rho^2 * sigma2^2 / ((1 - rho)^6 * (1 + rho)^2))
+  a <- numer / denom
+  bw <- 1.1447 * (a * T)^(1 / 3)
+  if (bw > (T - 1)) {
+    bw <- T - 1
+  }
+  return(bw)
+}

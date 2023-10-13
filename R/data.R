@@ -1,0 +1,34 @@
+#' England and Wales House Price Growth Data Categorised by Regions
+#'
+#' A data.frame containing the quarterly (mean) house prices of four different types of properties,
+#' (detached, semi-detached, terraced and flats/maisonettes) for 331 local planning
+#' authorities (LPA) over the period 1996Q1 to 2021Q2. See also Lin and Shin (2023).
+#'
+#' @format ## `UKhouse`
+#'
+#' @details
+#' Each LPA belongs to one of the ten regions: North East (NE), North West (NW),
+#' Yorkshire and the Humber (YH), East Midlands (EM), West Midlands(WM),
+#' East of England (EE), London (LD), South East (SE), South West (SW) and Wales (WA).
+#' The real house price growth of the \eqn{j}-th LPA-type pair in region
+#' \eqn{i} by deflating the nominal house price by CPI and log-differencing it as
+#' \deqn{\pi_{ijt}=100\times \log\left(\frac{PRICE_{ijt}}{CPI_{t}}\right)-100 \times
+#'  \log\left(\frac{PRICE_{ij,t-1}}{CPI_{t-1}}\right).}
+#' By removing the series with missing observations, it ends up with a balanced panel
+#' with \eqn{R = 10}, \eqn{N =\sum_{i=1}^{R} N_{i} = 1300} and \eqn{T = 102}.
+#'
+#' Columns in the dataset:
+#' \itemize{
+#'
+#' \item "Date" Time variable.
+#' \item "Region" Name of region which the LPA belongs to.
+#' \item "LPA" Name of the LPA.
+#' \item "Type" Name of the house type.
+#' \item "LPA_Type" Name of the LPA-type pair.
+#'
+#' }
+#'
+#' @source Office for National Statistics (ONS), ONS website, statistical bulletin, House price statistics for small areas in England and Wales: year ending June 2021
+#'
+#' @references Lin, R. and Shin, Y., 2022. Generalised Canonical Correlation Estimation of the Multilevel Factor Model. Available at SSRN 4295429.
+"UKhouse"
