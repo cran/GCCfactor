@@ -1,7 +1,7 @@
 Package: GCCfactor
 Type: Package
 Title: GCC Estimation of the Multilevel Factor Model
-Version: 1.0
+Version: 1.0.1
 Authors@R: c(
     person("Rui", "Lin", email = "ruilin1081@gmail.com", role = c("aut", "cre")),
     person("Yongcheol", "Shin", email = "yongcheol.shin@york.ac.uk", role = "aut")
@@ -19,8 +19,8 @@ LazyData: true
 RoxygenNote: 7.2.3
 Depends: R (>= 2.10)
 NeedsCompilation: no
-Packaged: 2023-10-13 01:15:47 UTC; Administrator
+Packaged: 2023-10-30 04:53:45 UTC; Administrator
 Author: Rui Lin [aut, cre],
   Yongcheol Shin [aut]
 Repository: CRAN
-Date/Publication: 2023-10-13 12:50:18 UTC
+Date/Publication: 2023-10-30 05:10:02 UTC

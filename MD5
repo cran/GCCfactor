@@ -1,11 +1,11 @@
-1b9b91789beb4812356f87ffa9b354a3 *DESCRIPTION
+10db4a72d82c0b3f0bcad2d79d93594b *DESCRIPTION
 f10803f0f0cd9550e709468590549ad9 *NAMESPACE
 26ae5c5d98582170340729c5472bf9ca *R/2D_functions.R
 56a01174741fa6b20f101756712c8462 *R/bootstrap_functions.R
 20ff3743a2c788956d92a1ea7437fb1d *R/data.R
 80a64f8b0721a78fbaa283123521ef61 *R/internal_functions.R
 e34f5bc75d8fccc703f3454b3a09b6a0 *R/main_functions.R
-d52a3052fe2182cd1782164b1e375e9b *R/utility_functions.R
+26cee5b35038bcea71ae8f0fa879bde3 *R/utility_functions.R
 0f88a33ce22fbdd6a78e4c56f0ddeebf *data/UKhouse.rda
 3790dccedf2cbf0cd46bbc0101705a0b *man/AsymCI_local_loading.Rd
 6eddd5a8290ffee6539232c987ef5a53 *man/BS_global_comp.Rd

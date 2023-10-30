@@ -81,6 +81,9 @@ check_data <- function(data, depvar_header = NULL, i_header = NULL,
     if (length(headers) != 0) {
       message("A list of data is supplied. The header names are not used.")
     }
+    if (length(names(data)) != length(data)) {
+      names(data) <- paste0("Block ", c(1:length(data)))
+    }
     Y_list <- data
   }
   nrows <- sapply(Y_list, nrow)
