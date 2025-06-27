@@ -61,7 +61,7 @@ The elements are identically equal to r_max if either r0 or ri is supplied as NU
 }
 }
 \description{
-This is one of the main functions of this package which performs full estimation
+This is the main function of this package which performs full estimation
 of the multilevel factor model.
 }
 \details{
@@ -79,7 +79,7 @@ In such case, "r_max" must be supplied. If "r0" and "ri" are supplied then
 If standarise = TRUE, each time series will be standardised so it has zero mean
 and unit variance. It is recommended to standardise the data before estimation.
 
-See Lin and Shin (2023) for more details.
+See Lin and Shin (2025) for more details.
 }
 \examples{
 
@@ -95,6 +95,6 @@ Y_list <- panel2list(panel, depvar_header = "dlPrice", i_header = "Region",
 est_multi <- multilevel(Y_list, ic = "BIC3", standarise = TRUE, r_max = 5)
 }
 \references{
-Lin, R. and Shin, Y., 2022. Generalised Canonical Correlation Estimation
-of the Multilevel Factor Model. Available at SSRN 4295429.
+Lin, R. and Shin, Y., 2025. Generalised Canonical Correlation Estimation
+of the Multilevel Factor Model. Available at SSRN 4783804.
 }

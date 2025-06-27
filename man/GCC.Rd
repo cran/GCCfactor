@@ -45,8 +45,8 @@ This function is one of the main functions the package, employing the
 generalized canonical correlation estimation for both the global factors
 \eqn{\boldsymbol{G}} and, when not explicitly provided, for the number of
 global factors \eqn{r_{0}}. Typically, this function is intended for internal
-purposes. However, users one can opt for GCC() instead of multilevel(),
-if the users only need to estimate the number of global factors.
+purposes. Users can opt for [GCC()] instead of [multilevel()], if they only
+need to estimate the number of global factors.
 }
 \details{
 The user-supplied data.frame should contain at least four columns, namely the
@@ -61,9 +61,7 @@ In such case, "r_max" must be supplied. If "r0" and "ri" are supplied then
 "r_max" is not needed and will be ignored.
 
 If standarise = TRUE, each time series will be standardised so it has zero mean
-and unit variance. It is recommended to standardise the data before estimation.
-
-See Lin and Shin (2023) for more details.
+and unit variance.
 }
 \examples{
 
@@ -75,6 +73,6 @@ r0_hat <- est_GCC$r0 # number of global factors
 G_hat <- est_GCC$G # global factors
 }
 \references{
-Lin, R. and Shin, Y., 2022. Generalised Canonical Correlation Estimation
-of the Multilevel Factor Model. Available at SSRN 4295429.
+Lin, R. and Shin, Y., 2025. Generalised Canonical Correlation Estimation
+of the Multilevel Factor Model. Available at SSRN 4783804.
 }

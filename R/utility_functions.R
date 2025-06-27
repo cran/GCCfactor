@@ -56,7 +56,7 @@ panel2list <- function(panel, depvar_header = NULL, i_header = NULL,
 #' @param t_header A character string specifying the header of the time identifier. See \strong{Details}.
 #'
 #' @details
-#' See \strong{Details} of GCC().
+#' See \strong{Details} of [GCC()].
 #'
 #'
 #' @return A list of data matrices of length \eqn{R}.
@@ -188,115 +188,4 @@ summary.multi_result <- function(object, ...) {
 }
 
 
-#' Bartlett kernel function
-#'
-#' @description
-#' Evaluate the Bartlett kernel function: \eqn{Bartlett(x)=1-|x|} if
-#' \eqn{|x|\leq 1} and \eqn{Bartlett(x)=1-|x|} otherwise.
-#'
-#'
-#' @param x A single numeric.
-#'
-#' @return A single numeric between 0 and 1.
-#' @export
-#'
-#' @examples
-#'
-#' Bartlett(0.5)
-#'
-Bartlett <- function(x) {
-  if (abs(x) <= 1) {
-    value <- 1 - abs(x)
-  } else {
-    value <- 0
-  }
-  return(value)
-}
 
-#' Dependent wild bootstrap for resampling time series
-#'
-#' @description
-#' Select an optimal bandwidth parameter and apply the dependent wild bootstrap
-#' with Bartlett kernel to obtain the resampled time series.
-#'
-#' @param y A \eqn{T\times 1} vector of time series to be resampled.
-#'
-#' @return A \eqn{T\times 1} matrix of resampled time series.
-#'
-#' @references Shao, X., 2010. The dependent wild bootstrap. Journal of the
-#' American Statistical Association, 105(489), pp.218-235.
-#'
-#' @export
-#'
-#' @examples
-#' panel <- UKhouse # load the data
-#' est_multi <- multilevel(panel, ic = "BIC3", standarise = TRUE, r_max = 5,
-#'                            depvar_header = "dlPrice", i_header = "Region",
-#'                            j_header = "LPA_Type", t_header = "Date")
-#' G_star <- dwBS(est_multi$G)
-dwBS <- function(y) {
-  T <- nrow(y)
-  y_star <- matrix(0, T, 1)
-  lT <- get_bw(y)
-
-  ss <- seq(1, T)
-  Omega_col <- sapply(ss, function(x) {
-    Bartlett((x - 1) / lT)
-  })
-  Omega_col <- Omega_col[Omega_col > 0]
-  extra <- (length(Omega_col) - 1) * 2
-  if (extra > 0) {
-    Omega_col <- c(Omega_col[length(Omega_col):2], Omega_col)
-    Omega <- matrix(0, T + extra, T + extra)
-    for (tt in 1:T) {
-      start <- tt
-      end <- tt + extra
-      Omega[start:end, tt] <- Omega_col
-    }
-    Omega <- Omega[(extra / 2 + 1):(extra / 2 + T), 1:T]
-  } else {
-    Omega <- diag(1, T, T)
-  }
-
-  eig <- eigen(Omega)
-  Omega_half <- eig$vectors %*% diag(sqrt(eig$values)) %*% t(eig$vectors)
-  y_star <- Omega_half %*% matrix(stats::rnorm(T, 0, 1), ncol = 1) * y
-
-}
-
-#' Get an optimal bandwidth using Bartlett kernel
-#'
-#' @description
-#' Automatic bandwidth selection of Andrews (1991) using Bartlett kernel.
-#'
-#' @param y A \eqn{T\times 1} vector of time series
-#'
-#' @return A numeric.
-#'
-#' @references Andrews, D.W., 1991. Heteroskedasticity and autocorrelation
-#' consistent covariance matrix estimation. Econometrica: Journal of the
-#' Econometric Society, pp.817-858.
-#'
-#' @export
-#'
-#' @examples
-#' panel <- UKhouse # load the data
-#' est_multi <- multilevel(panel, ic = "BIC3", standarise = TRUE, r_max = 5,
-#'                            depvar_header = "dlPrice", i_header = "Region",
-#'                            j_header = "LPA_Type", t_header = "Date")
-#' lT_G <- get_bw(est_multi$G)
-get_bw <- function(y) {
-  T <- nrow(y)
-  rho <- sigma2 <- 1
-  mod <- stats::lm(y[-1, 1] ~ y[-T, 1] - 1)
-  rho <- mod$coeff
-  sigma2 <- (1 / T) * sum(mod$resid^2)
-  denom <- sum(sigma2^2 / (1 - rho)^4)
-  numer <- sum(4 * rho^2 * sigma2^2 / ((1 - rho)^6 * (1 + rho)^2))
-  a <- numer / denom
-  bw <- 1.1447 * (a * T)^(1 / 3)
-  if (bw > (T - 1)) {
-    bw <- T - 1
-  }
-  return(bw)
-}

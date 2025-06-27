@@ -31,7 +31,7 @@ This is an internal function which checks the validity of the data and
 provide a list of matrices of length \eqn{R} for estimation.
 }
 \details{
-See \strong{Details} of GCC().
+See \strong{Details} of [GCC()].
 }
 \examples{
 panel <- UKhouse # load the data

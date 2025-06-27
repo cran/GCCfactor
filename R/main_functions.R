@@ -5,8 +5,8 @@
 #' generalized canonical correlation estimation for both the global factors
 #' \eqn{\boldsymbol{G}} and, when not explicitly provided, for the number of
 #' global factors \eqn{r_{0}}. Typically, this function is intended for internal
-#' purposes. However, users one can opt for GCC() instead of multilevel(),
-#' if the users only need to estimate the number of global factors.
+#' purposes. Users can opt for [GCC()] instead of [multilevel()], if they only
+#' need to estimate the number of global factors.
 #'
 #'
 #' @param data Either a data.frame or a list of data matrices of length \eqn{R}. See \strong{Details}.
@@ -32,16 +32,14 @@
 #' "r_max" is not needed and will be ignored.
 #'
 #' If standarise = TRUE, each time series will be standardised so it has zero mean
-#' and unit variance. It is recommended to standardise the data before estimation.
-#'
-#' See Lin and Shin (2023) for more details.
+#' and unit variance.
 #'
 #' @return A list containing the estimated number of global factors \eqn{\hat{r}_{0}},
 #' the global factors \eqn{\widehat{\boldsymbol{G}}}, and the other elements that are
 #' used in multilevel().
 #'
-#' @references Lin, R. and Shin, Y., 2022. Generalised Canonical Correlation Estimation
-#' of the Multilevel Factor Model. Available at SSRN 4295429.
+#' @references Lin, R. and Shin, Y., 2025. Generalised Canonical Correlation Estimation
+#' of the Multilevel Factor Model. Available at SSRN 4783804.
 #'
 #' @export
 #'
@@ -115,7 +113,7 @@ GCC <- function(data, standarise = TRUE, r_max = 10, r0 = NULL, ri = NULL, depva
 #' Full estimation of the multilevel factor model
 #'
 #' @description
-#' This is one of the main functions of this package which performs full estimation
+#' This is the main function of this package which performs full estimation
 #' of the multilevel factor model.
 #'
 #'
@@ -145,7 +143,7 @@ GCC <- function(data, standarise = TRUE, r_max = 10, r0 = NULL, ri = NULL, depva
 #' If standarise = TRUE, each time series will be standardised so it has zero mean
 #' and unit variance. It is recommended to standardise the data before estimation.
 #'
-#' See Lin and Shin (2023) for more details.
+#' See Lin and Shin (2025) for more details.
 #'
 #'
 #' @return The return value is an S3 object of class "multi_result".
@@ -169,8 +167,8 @@ GCC <- function(data, standarise = TRUE, r_max = 10, r0 = NULL, ri = NULL, depva
 #'
 #' }
 #'
-#' @references Lin, R. and Shin, Y., 2022. Generalised Canonical Correlation Estimation
-#' of the Multilevel Factor Model. Available at SSRN 4295429.
+#' @references Lin, R. and Shin, Y., 2025. Generalised Canonical Correlation Estimation
+#' of the Multilevel Factor Model. Available at SSRN 4783804.
 #'
 #' @export
 #'
