@@ -1,11 +1,11 @@
-31a58236855941bef44980202e2b6430 *DESCRIPTION
-aab235d83490ebd6c670040857928e91 *NAMESPACE
+e3554139a10ca74812e5fa8cdccb86b1 *DESCRIPTION
+e8790dd85e9a605db044d4cc4facc3fe *NAMESPACE
 26ae5c5d98582170340729c5472bf9ca *R/2D_functions.R
 20ff3743a2c788956d92a1ea7437fb1d *R/data.R
 80a64f8b0721a78fbaa283123521ef61 *R/internal_functions.R
 cd7058a7d825f4524762a0a949dcaf97 *R/main_functions.R
-b9ed129a1f6a938c02b1f4cee2f7eb53 *R/utility_functions.R
-2153892671f84f2d42bf7f234e5f752c *R/vcov_functions.R
+38c7405522c280ad1c5959d642dd72b0 *R/utility_functions.R
+154c2fa1be39c7e198b0c870d6217428 *R/vcov_functions.R
 0f88a33ce22fbdd6a78e4c56f0ddeebf *data/UKhouse.rda
 ba081fb89d682241f5abe5cff5511602 *man/GCC.Rd
 d924081fec9e8f801d652d5df2ac4505 *man/PC.Rd
@@ -14,7 +14,8 @@ d924081fec9e8f801d652d5df2ac4505 *man/PC.Rd
 1b9bae04a50bb0c5db0d0193da704251 *man/infocrit.Rd
 3ec4ada6a580af8298fcfd4b5405c053 *man/multilevel.Rd
 8c06d0e2eb229148274c268aced71656 *man/panel2list.Rd
-ae8c6e4564b66ddb8d01d2c2e90ca02d *man/summary.multi_result.Rd
+8c94c2db5cc00fcc4f27dcba8361799c *man/summary.multi_result.Rd
+1102406c3aec68d6e060e65943849cd8 *man/vcov_POET.Rd
 00336b9745356df5c185b5d1909b499a *man/vcov_global_comp.Rd
 e28d331e038481d13b8bdabea539f2d7 *man/vcov_global_factor.Rd
 472f5629ab1bf56164c9d16fe125fa23 *man/vcov_global_loading.Rd

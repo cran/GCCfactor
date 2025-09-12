@@ -104,7 +104,7 @@ check_data <- function(data, depvar_header = NULL, i_header = NULL,
 #' @param ... Additional arguments.
 #'
 #' @return A matrix containing the summary of the model.
-#' @export
+#' @usage \method{summary}{multi_result}(object, ...)
 #'
 #' @examples
 #'
@@ -113,7 +113,7 @@ check_data <- function(data, depvar_header = NULL, i_header = NULL,
 #'                            depvar_header = "dlPrice", i_header = "Region",
 #'                            j_header = "LPA_Type", t_header = "Date")
 #' summary(est_multi)
-#'
+#'@export
 summary.multi_result <- function(object, ...) {
 
   G <- object$G

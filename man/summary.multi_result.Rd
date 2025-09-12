@@ -24,5 +24,4 @@ est_multi <- multilevel(panel, ic = "BIC3", standarise = TRUE, r_max = 5,
                            depvar_header = "dlPrice", i_header = "Region",
                            j_header = "LPA_Type", t_header = "Date")
 summary(est_multi)
-
 }
