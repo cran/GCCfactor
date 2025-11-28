@@ -30,7 +30,7 @@
 #'
 panel2list <- function(panel, depvar_header = NULL, i_header = NULL,
                        j_header = NULL, t_header = NULL) {
-  i_names <- unique(panel[, i_header])
+  i_names <- unique(unlist(panel[, i_header]))
   R <- length(i_names)
   List <- lapply(c(1:R), function(i) {
     select <- panel[, i_header] == i_names[i]
