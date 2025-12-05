@@ -35,7 +35,9 @@ panel2list <- function(panel, depvar_header = NULL, i_header = NULL,
   List <- lapply(c(1:R), function(i) {
     select <- panel[, i_header] == i_names[i]
     subpanel <- panel[select ,c(depvar_header, j_header, t_header)]
-    subpanel_wide <- stats::reshape(subpanel, idvar = t_header, timevar = j_header, direction = "wide")
+    subpanel_wide <- reshape2::dcast(subpanel,
+                           formula = paste(t_header, "~", j_header),
+                           value.var = depvar_header)
     subpanel_mat <- data.matrix(subpanel_wide)
     subpanel_mat[, 2:ncol(subpanel_mat)]
   })
