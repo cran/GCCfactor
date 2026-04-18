@@ -76,13 +76,13 @@ GCC <- function(data, standarise = TRUE, r_max = 10, r0 = NULL, ri = NULL, depva
   s <- svd(Phi / sqrt(T))
   v <- s$v
   delta2 <- (s$d[length(s$d):1])^2
-  mock <- mean(delta2) / (sqrt(min(T, Ni)))
+  mock <- mean(delta2) / (min(T, Ni))
   delta2 <- delta2[1:(r_max + 1)]
   delta2 <- c(mock, delta2)
 
   if (is.null(r0)) {
     ratios <- delta2[2:length(delta2)] / delta2[1:(length(delta2) - 1)]
-    ratios[delta2[2:length(delta2)] <= (1/log(min(c(Ni,T))))] <- 1
+    ratios[delta2[2:length(delta2)] <= (1/log((min(Ni)*T)^2))] <- 1
     r0 <- which(ratios == max(ratios)) - 1
   }
 
