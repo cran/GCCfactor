@@ -10,14 +10,16 @@
 #'
 #'
 #' @param data Either a data.frame or a list of data matrices of length \eqn{R}. See \strong{Details}.
+#' @param ic A character string of selection criteria to use for estimation of the numbers of local factors. See \strong{Details}.
 #' @param standarise A logical indicating whether the data is standardised before estimation or not. See \strong{Details}.
 #' @param r_max An integer indicating the maximum number of factors allowed. See \strong{Details}.
-#' @param r0 An integer of the number of global factors. See \strong{Details}.
-#' @param ri An array of length \eqn{R} containing the number of local factors in each block. See \strong{Details}.
+#' @param overestimate A logical. True means \eqn{r_{\max}} factors are extracted from each block. See \strong{Details}.
 #' @param depvar_header A character string specifying the header of the dependent variable. See \strong{Details}.
 #' @param i_header A character string specifying the header of the block identifier. See \strong{Details}.
 #' @param j_header A character string specifying the header of the individual identifier. See \strong{Details}.
 #' @param t_header A character string specifying the header of the time identifier. See \strong{Details}.
+#' @param r0 An integer of the number of global factors. See \strong{Details}.
+#' @param ri An array of length \eqn{R} containing the number of local factors in each block. See \strong{Details}.
 #'
 #' @details
 #' The user-supplied data.frame should contain at least four columns, namely the
@@ -30,6 +32,9 @@
 #' If either r0 = NULL or ri = NULL, both of them will be estimated.
 #' In such case, "r_max" must be supplied. If "r0" and "ri" are supplied then
 #' "r_max" is not needed and will be ignored.
+#' If overestimate = TRUE, then \eqn{r_{\max}} factors are extracted from each block.
+#' Otherwise, \eqn{\hat{d}_{i}} will be estimated respectively from each block merely
+#' using "r_max" as the upper search limit.
 #'
 #' If standarise = TRUE, each time series will be standardised so it has zero mean
 #' and unit variance.
@@ -51,8 +56,8 @@
 #' est_GCC <- GCC(Y_list, r_max = 10)
 #' r0_hat <- est_GCC$r0 # number of global factors
 #' G_hat <- est_GCC$G # global factors
-GCC <- function(data, standarise = TRUE, r_max = 10, r0 = NULL, ri = NULL, depvar_header = NULL,
-                i_header = NULL, j_header = NULL, t_header = NULL) {
+GCC <- function(data, ic = "BIC3", standarise = TRUE, r_max = 10, overestimate = TRUE, depvar_header = NULL,
+                i_header = NULL, j_header = NULL, t_header = NULL, r0 = NULL, ri = NULL) {
   Y_list <- check_data(data,
     depvar_header = depvar_header, i_header = i_header,
     j_header = j_header, t_header = t_header
@@ -66,24 +71,35 @@ GCC <- function(data, standarise = TRUE, r_max = 10, r0 = NULL, ri = NULL, depva
   Ni <- sapply(Y_list, ncol)
   T <- nrow(Y_list[[1]])
 
-  d <- get_K_dim(r_max, r0, ri, R)
+  d <- get_K_dim(Y_list, r_max, overestimate, r0, ri, ic)
+  zero_indices <- which(d == 0)
+  if (length(zero_indices) > 0) {
+    failing_blocks <- paste(zero_indices, collapse = ", ")
+    stop(sprintf("Blocks have no factor: %s", failing_blocks))
+  }
   K <- lapply(c(1:R), function(i) {
     est <- PC(Y_list[[i]], d[i])
     return(est$factor)
   })
 
   Phi <- get_Phi(K, R, d, T)
-  s <- svd(Phi / sqrt(T))
+  s <- svd(Phi)
   v <- s$v
   delta2 <- (s$d[length(s$d):1])^2
-  mock <- mean(delta2) / (min(T, Ni))
-  delta2 <- delta2[1:(r_max + 1)]
+  mock <- mean(delta2) / sqrt(min(T, Ni))
+  if (isTRUE(overestimate)) {
+    d_range <- r_max + 1
+  } else {
+    d_range <- sum(d)
+  }
+  d_range <- min(d_range, length(delta2))
+  delta2 <- delta2[seq_len(d_range)]
   delta2 <- c(mock, delta2)
 
   if (is.null(r0)) {
     ratios <- delta2[2:length(delta2)] / delta2[1:(length(delta2) - 1)]
-    ratios[delta2[2:length(delta2)] <= (1/log((min(Ni)*T)^2))] <- 1
-    r0 <- which(ratios == max(ratios)) - 1
+    ratios[delta2[2:length(delta2)] <= (T/log((min(Ni)*T)^2))] <- 1
+    r0 <- which.max(ratios) - 1
   }
 
   if (r0 > 0) {
@@ -122,12 +138,13 @@ GCC <- function(data, standarise = TRUE, r_max = 10, r0 = NULL, ri = NULL, depva
 #' @param ic A character string of selection criteria to use for estimation of the numbers of local factors. See \strong{Details}.
 #' @param standarise A logical indicating whether the data is standardised before estimation or not. See \strong{Details}.
 #' @param r_max An integer indicating the maximum number of factors allowed. See \strong{Details}.
-#' @param r0 An integer of the number of global factors. See \strong{Details}.
-#' @param ri An array of length \eqn{R} containing the number of local factors in each block. See \strong{Details}.
+#' @param overestimate A logical. True means \eqn{r_{\max}} factors are extracted from each block. See \strong{Details}.
 #' @param depvar_header A character string specifying the header of the dependent variable. See \strong{Details}.
 #' @param i_header A character string specifying the header of the block identifier. See \strong{Details}.
 #' @param j_header A character string specifying the header of the individual identifier. See \strong{Details}.
 #' @param t_header A character string specifying the header of the time identifier. See \strong{Details}.
+#' @param r0 An integer of the number of global factors. See \strong{Details}.
+#' @param ri An array of length \eqn{R} containing the number of local factors in each block. See \strong{Details}.
 #'
 #' @details
 #' The user-supplied data.frame should contain at least four columns, namely the
@@ -140,6 +157,9 @@ GCC <- function(data, standarise = TRUE, r_max = 10, r0 = NULL, ri = NULL, depva
 #' If either r0 = NULL or ri = NULL, then both of them will be estimated.
 #' In such case, "r_max" must be supplied. If "r0" and "ri" are supplied then
 #' "r_max" is not needed and will be ignored.
+#' If overestimate = TRUE, then \eqn{r_{\max}} factors are extracted from each block.
+#' Otherwise, \eqn{\hat{d}_{i}} will be estimated respectively from each block merely
+#' using "r_max" as the upper search limit.
 #'
 #' If standarise = TRUE, each time series will be standardised so it has zero mean
 #' and unit variance. It is recommended to standardise the data before estimation.
@@ -162,7 +182,7 @@ GCC <- function(data, standarise = TRUE, r_max = 10, r0 = NULL, ri = NULL, depva
 #' \item d = An array of length \eqn{R} containing the maximum total number of factors allowed for each block.
 #' The elements are identically equal to r_max if either r0 or ri is supplied as NULL.
 #' \item Resid = A list of length \eqn{R} containing the residual matrices for each block.
-#' \item delta2 = An array of the mock and the \eqn{r_{\max} + 1} largest squared singular values.
+#' \item delta2 = An array of the mock and the remaining squared singular values.
 #' \item ic = Selection criteria used for estimating the numbers of local factors.
 #' \item block_names = A array of block names.
 #'
@@ -185,9 +205,10 @@ GCC <- function(data, standarise = TRUE, r_max = 10, r0 = NULL, ri = NULL, depva
 #' Y_list <- panel2list(panel, depvar_header = "dlPrice", i_header = "Region",
 #'                                        j_header = "LPA_Type", t_header = "Date")
 #' est_multi <- multilevel(Y_list, ic = "BIC3", standarise = TRUE, r_max = 5)
-multilevel <- function(data, ic = "BIC3", standarise = TRUE, r_max = 10, r0 = NULL,
-                       ri = NULL, depvar_header = NULL, i_header = NULL, j_header = NULL, t_header = NULL) {
-  GCC_est <- GCC(data, standarise, r_max, r0, ri, depvar_header, i_header, j_header, t_header)
+multilevel <- function(data, ic = "BIC3", standarise = TRUE, r_max = 10, overestimate = TRUE,
+                       depvar_header = NULL, i_header = NULL, j_header = NULL, t_header = NULL,
+                       r0 = NULL, ri = NULL) {
+  GCC_est <- GCC(data, ic, standarise, r_max, overestimate, depvar_header, i_header, j_header, t_header, r0, ri)
   G <- GCC_est$G
   r0 <- GCC_est$r0
   d <- GCC_est$d
@@ -228,8 +249,8 @@ multilevel <- function(data, ic = "BIC3", standarise = TRUE, r_max = 10, r0 = NU
     }
   } else {
     if (ri_empty) {
-      ri <- sapply(Y_list, function(x) {
-        infocrit(x, ic, ri_max[i])
+      ri <- sapply(c(1:R),function(i) {
+        infocrit(Y_list[[i]], ic, ri_max[i])
       })
     }
     G <- NA

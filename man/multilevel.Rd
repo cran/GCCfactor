@@ -9,12 +9,13 @@ multilevel(
   ic = "BIC3",
   standarise = TRUE,
   r_max = 10,
-  r0 = NULL,
-  ri = NULL,
+  overestimate = TRUE,
   depvar_header = NULL,
   i_header = NULL,
   j_header = NULL,
-  t_header = NULL
+  t_header = NULL,
+  r0 = NULL,
+  ri = NULL
 )
 }
 \arguments{
@@ -26,9 +27,7 @@ multilevel(
 
 \item{r_max}{An integer indicating the maximum number of factors allowed. See \strong{Details}.}
 
-\item{r0}{An integer of the number of global factors. See \strong{Details}.}
-
-\item{ri}{An array of length \eqn{R} containing the number of local factors in each block. See \strong{Details}.}
+\item{overestimate}{A logical. True means \eqn{r_{\max}} factors are extracted from each block. See \strong{Details}.}
 
 \item{depvar_header}{A character string specifying the header of the dependent variable. See \strong{Details}.}
 
@@ -37,6 +36,10 @@ multilevel(
 \item{j_header}{A character string specifying the header of the individual identifier. See \strong{Details}.}
 
 \item{t_header}{A character string specifying the header of the time identifier. See \strong{Details}.}
+
+\item{r0}{An integer of the number of global factors. See \strong{Details}.}
+
+\item{ri}{An array of length \eqn{R} containing the number of local factors in each block. See \strong{Details}.}
 }
 \value{
 The return value is an S3 object of class "multi_result".
@@ -54,7 +57,7 @@ It contains a list of the following items:
 \item d = An array of length \eqn{R} containing the maximum total number of factors allowed for each block.
 The elements are identically equal to r_max if either r0 or ri is supplied as NULL.
 \item Resid = A list of length \eqn{R} containing the residual matrices for each block.
-\item delta2 = An array of the mock and the \eqn{r_{\max} + 1} largest squared singular values.
+\item delta2 = An array of the mock and the remaining squared singular values.
 \item ic = Selection criteria used for estimating the numbers of local factors.
 \item block_names = A array of block names.
 
@@ -75,6 +78,9 @@ as a list, these arguments will not be used.
 If either r0 = NULL or ri = NULL, then both of them will be estimated.
 In such case, "r_max" must be supplied. If "r0" and "ri" are supplied then
 "r_max" is not needed and will be ignored.
+If overestimate = TRUE, then \eqn{r_{\max}} factors are extracted from each block.
+Otherwise, \eqn{\hat{d}_{i}} will be estimated respectively from each block merely
+using "r_max" as the upper search limit.
 
 If standarise = TRUE, each time series will be standardised so it has zero mean
 and unit variance. It is recommended to standardise the data before estimation.

@@ -178,7 +178,16 @@ vcov_local_factor <- function(object, i, t) {
   mI <- do.call(rbind, mI)
   Ci_dot <- do.call(cbind, Ci_dot) - sqrt(Ni[block] / N) * (1 / R) *
     (t(Lambda[[block]]) %*% Gamma[[block]] / Ni[block]) %*% t(mI) %*% C_bd
-  Var_Fi <- solve(Upsi_hat) %*% Ci_dot %*% D1 %*% t(Ci_dot) %*% solve(Upsi_hat)
+  Var_Fi_first <- solve(Upsi_hat) %*% Ci_dot %*% D1 %*% t(Ci_dot) %*% solve(Upsi_hat)
+
+  Gt <- matrix(G[t, ], ncol = 1)
+  weights <- as.vector(G %*% Gt)
+  Zi <- F[[block]] * weights
+  fit <- stats::lm(Zi ~ 1)
+  D3it <- sandwich::NeweyWest(fit, sandwich = FALSE)
+  Var_Fi_second <- (Ni[block]/T) * solve(Upsi_hat) %*% (t(Lambda[[block]]) %*% Lambda[[block]] / Ni[block]) %*% D3it %*%
+    (t(Lambda[[block]]) %*% Lambda[[block]] / Ni[block]) %*% solve(Upsi_hat)
+  Var_Fi <- Var_Fi_first + Var_Fi_second
 
   return(as.matrix(Var_Fi))
 }
@@ -253,12 +262,12 @@ vcov_global_comp <- function(object, i, j, t) {
   ind <- j
 
   D1t <- vcov_global_factor(object, t)
-  D2ij <- vcov_global_loading(object, i = block, j = ind)
+  D3ij <- vcov_global_loading(object, i = block, j = ind)
 
   gamma_ij <- matrix(Gamma[[block]][ind, ], ncol = 1)
   Gt <- matrix(G[t, ], ncol = 1)
 
-  Var_gc_ijt <- (t(gamma_ij) %*% D1t %*% gamma_ij / N + t(Gt) %*% D2ij %*% Gt / T) * min(min(Ni),T)
+  Var_gc_ijt <- (t(gamma_ij) %*% D1t %*% gamma_ij / N + t(Gt) %*% D3ij %*% Gt / T) * min(min(Ni),T)
 
   return(c(Var_gc_ijt))
 }
@@ -304,14 +313,39 @@ vcov_local_comp <- function(object, i, j, t) {
   Upsi_hat <- matrix(0, ri[block], ri[block])
   diag(Upsi_hat) <- eig$values[1:ri[block]]
 
-  D3ij <- vcov_local_loading(object, i = block, j = ind)
+  D4ij <- vcov_local_loading(object, i = block, j = ind)
   Var_Fi <- Upsi_hat %*% vcov_local_factor(object, i = block, t = t) %*% Upsi_hat
 
   Lambda_inv <- solve(t(Lambda[[block]]) %*% Lambda[[block]] / Ni[block])
   lambda_ij <- matrix(Lambda[[block]][ind, ], ncol = 1)
   Fit <- matrix(F[[block]][t, ], ncol = 1)
 
-  Var_lc_ijt <- (t(lambda_ij) %*% Lambda_inv %*% Var_Fi %*% Lambda_inv %*% lambda_ij / Ni[block] + t(Fit) %*% D3ij %*% Fit / T) * min(Ni[block], T)
+  r_i <- ri[block]
+  Gt <- matrix(G[t, ], ncol = 1)
+  ones_ri <- matrix(1, nrow = 1, ncol = r_i)
+  weights <- G %*% Gt
+  Wi <- F[[block]] * (weights %*% ones_ri)
+  eij <- matrix(Resid[[block]][, ind], ncol = 1L)
+  Vij <- F[[block]] * (eij %*% ones_ri)
+  WV <- cbind(Wi, Vij)
+  fit_WV <- stats::lm(WV ~ 1)
+  D_WV <- as.matrix(
+    sandwich::NeweyWest(fit_WV, sandwich = FALSE)
+  )
+  D5ijt <- D_WV[seq_len(r_i), r_i + seq_len(r_i), drop = FALSE]
+
+  factor_part <- drop(
+    t(lambda_ij) %*% Lambda_inv %*% Var_Fi %*%
+      Lambda_inv %*% lambda_ij / Ni[block]
+  )
+  loading_part <- drop(
+    t(Fit) %*% D4ij %*% Fit / T
+  )
+  cross_part <- drop(
+    -2 * t(lambda_ij) %*% D5ijt %*% Fit / T
+  )
+
+  Var_lc_ijt <- min(Ni[block], T) * (factor_part + loading_part + cross_part)
 
   return(c(Var_lc_ijt))
 }

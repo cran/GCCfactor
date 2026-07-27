@@ -6,26 +6,28 @@
 \usage{
 GCC(
   data,
+  ic = "BIC3",
   standarise = TRUE,
   r_max = 10,
-  r0 = NULL,
-  ri = NULL,
+  overestimate = TRUE,
   depvar_header = NULL,
   i_header = NULL,
   j_header = NULL,
-  t_header = NULL
+  t_header = NULL,
+  r0 = NULL,
+  ri = NULL
 )
 }
 \arguments{
 \item{data}{Either a data.frame or a list of data matrices of length \eqn{R}. See \strong{Details}.}
 
+\item{ic}{A character string of selection criteria to use for estimation of the numbers of local factors. See \strong{Details}.}
+
 \item{standarise}{A logical indicating whether the data is standardised before estimation or not. See \strong{Details}.}
 
 \item{r_max}{An integer indicating the maximum number of factors allowed. See \strong{Details}.}
 
-\item{r0}{An integer of the number of global factors. See \strong{Details}.}
-
-\item{ri}{An array of length \eqn{R} containing the number of local factors in each block. See \strong{Details}.}
+\item{overestimate}{A logical. True means \eqn{r_{\max}} factors are extracted from each block. See \strong{Details}.}
 
 \item{depvar_header}{A character string specifying the header of the dependent variable. See \strong{Details}.}
 
@@ -34,6 +36,10 @@ GCC(
 \item{j_header}{A character string specifying the header of the individual identifier. See \strong{Details}.}
 
 \item{t_header}{A character string specifying the header of the time identifier. See \strong{Details}.}
+
+\item{r0}{An integer of the number of global factors. See \strong{Details}.}
+
+\item{ri}{An array of length \eqn{R} containing the number of local factors in each block. See \strong{Details}.}
 }
 \value{
 A list containing the estimated number of global factors \eqn{\hat{r}_{0}},
@@ -59,6 +65,9 @@ as a list, these arguments will not be used.
 If either r0 = NULL or ri = NULL, both of them will be estimated.
 In such case, "r_max" must be supplied. If "r0" and "ri" are supplied then
 "r_max" is not needed and will be ignored.
+If overestimate = TRUE, then \eqn{r_{\max}} factors are extracted from each block.
+Otherwise, \eqn{\hat{d}_{i}} will be estimated respectively from each block merely
+using "r_max" as the upper search limit.
 
 If standarise = TRUE, each time series will be standardised so it has zero mean
 and unit variance.

@@ -60,21 +60,29 @@ get_Phi <- function(K, R, d, T) {
 
 #' Supply numbers of factors in each block.
 #'
+#' @param Y_list The list of T by N data matrices of length R.
 #' @param r_max An integer indicating the maximum number of factors allowed in each block.
+#' @param overestimate A logical. True means \eqn{r_{\max}} factors are extracted from each block.
 #' @param r0 An integer of the number of global factors.
 #' @param ri An array of length \eqn{R} containing the number of local factors in each block.
-#' @param R An integer of the number of blocks.
+#' @param ic A character string of selection criteria to use for estimation of the numbers of local factors.
 #'
 #' @return An array of length \eqn{R} containing the total number of factors in each block.
 #' @noRd
-get_K_dim <- function(r_max, r0, ri, R) {
+get_K_dim <- function(Y_list, r_max, overestimate, r0, ri, ic) {
   r0_empty <- is.null(r0)
   ri_empty <- is.null(ri)
+  R <- length(Y_list)
   if (r0_empty | ri_empty) {
     if((r0_empty & !ri_empty) | (!r0_empty & ri_empty)){
       message(paste0("r0 or ri is NULL. The one that is NULL will be estimated."))
     }
-    d <- rep(r_max, R)
+    if(isTRUE(overestimate)){
+      d <- rep(r_max, R)
+    }else{
+      d <- sapply(Y_list, function(x){infocrit(x, ic, r_max)})
+    }
+
   }else if (!r0_empty & !ri_empty) {
     if (length(ri) != R) {
       stop(paste0("Length of ri should be equal to the number of blocks."))

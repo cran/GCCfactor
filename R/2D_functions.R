@@ -179,6 +179,19 @@ infocrit <- function(Y, method, r_max = 10) {
         j <- r_hat + 1
       }
     }
+  }else if(method=="ET"){
+    Y <- scale(Y, scale = FALSE)
+    T <- nrow(Y)
+    N <- ncol(Y)
+    eig <- eigen((1/(N*T))*t(Y)%*%Y)
+    eval <- eig$values
+    m <- min(N, T)
+    mock <- sum(eig$values) / log(m)
+    eval <- c(mock, eval)
+    eval <- eval[1:(r_max+2)]
+    ratios <- eval[1:(r_max+1)]/eval[2:(r_max+2)]
+    ratios[eval[1:length(ratios)]<=(1/log((N*T)^8))] <- 1
+    r_hat <- which(ratios == max(ratios)) - 1
   }
   return(r_hat)
 }
