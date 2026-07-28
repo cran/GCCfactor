@@ -107,6 +107,7 @@ check_data <- function(data, depvar_header = NULL, i_header = NULL,
 #'
 #' @return A matrix containing the summary of the model.
 #' @usage \method{summary}{multi_result}(object, ...)
+#' @method summary multi_result
 #'
 #' @examples
 #'

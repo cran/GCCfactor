@@ -1,10 +1,10 @@
-2c25372e7400b5671e17fd1cb343671d *DESCRIPTION
-970ea0e85e4f7c6392f3834a985e265b *NAMESPACE
+cee0acb1619a95914a292ce68674d97f *DESCRIPTION
+a318d5c5307b5d1662658f9ffc91e74a *NAMESPACE
 51775c3caf543c7b9f0d9e7f06ec319a *R/2D_functions.R
 20ff3743a2c788956d92a1ea7437fb1d *R/data.R
 5d201f35648eaee89cc4dd8710e61e70 *R/internal_functions.R
 6c21fbc6fa90d51cab838d99b34aabe9 *R/main_functions.R
-cccf9c17b19e9562f718fb2acafadd82 *R/utility_functions.R
+af55b83622027ad726ae53b55f7696ef *R/utility_functions.R
 dfb36052f5fe01d9ea40ecb7bc8fee57 *R/vcov_functions.R
 552319595e1a86ad43c09a4e8ebf122c *README.md
 0f88a33ce22fbdd6a78e4c56f0ddeebf *data/UKhouse.rda
